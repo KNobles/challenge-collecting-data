@@ -8,6 +8,8 @@ from selenium.webdriver.common.keys import Keys
 from requests import Session
 from bs4 import BeautifulSoup
 
+## "isLifeAnnuitySale": false ===>>> SHOULD BE FALSE
+
 root_url = "https://www.immoweb.be/en"
 search_house_url = root_url + "/search/house/for-sale"
 search_appartment_url = root_url + "/search/apartment/for-sale"
@@ -32,8 +34,9 @@ def get_max_pages():
             max = int(string)
     return max
 
-for i in range(1, 3):
-    driver.get(search_appartment_url + f"?page={i}")
+
+for i in range(1, 10):
+    driver.get(search_appartment_url + f"?isAPublicSale=true&page={i}")
     elements = driver.find_elements(By.XPATH, '//h2[@class="card__title card--result__title"]')
     for item in elements:
         print(item.find_element(By.CLASS_NAME, "card__title-link").get_attribute("href"))

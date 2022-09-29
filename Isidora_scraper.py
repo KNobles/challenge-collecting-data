@@ -40,7 +40,7 @@ def get_max_pages():
 def search_property_urls(search_url):
     driver.get(root_url)
     driver.find_element(By.XPATH, '//*[@id="uc-btn-accept-banner"]').click()
-    for i in range (1, get_max_pages()):
+    for i in range (1, get_max_pages()): #2,d part of map
         print(f"PAGE N°{i}")
         driver.get(search_url + f"?page={i}")
         elements = driver.find_elements(By.XPATH, '//h2[@class="card__title card--result__title"]')
