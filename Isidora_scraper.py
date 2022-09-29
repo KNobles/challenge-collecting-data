@@ -6,35 +6,50 @@ import time
 from logging import root
 import pandas
 import requests
+import re
 from requests import Session
 from bs4 import BeautifulSoup
 
 driver = webdriver.Firefox()
 driver.implicitly_wait(10)
 root_url = "https://www.immoweb.be/en"
-page_num = 1
-search_apartment_url = root_url + "/search/apartment/for-sale" + "?page=" 
-search_house_url = root_url + "/search/house/for-sale" + "?page=" 
+search_apartment_url = root_url + "/search/apartment/for-sale" 
+search_house_url = root_url + "/search/house/for-sale" 
 
-driver.get(root_url)
-driver.find_element(By.XPATH, '//*[@id="uc-btn-accept-banner"]').click()
+driver.get(search_apartment_url + "?page=1")
 
+# # Get all elements of the page that has the word "Page" and put it in a list
+page_list = [elem.text for elem in driver.find_elements(By.XPATH, "//*[contains(text(), 'Page')]")]
 
+# # Filter the empty items from the list and then change the list as a "set" so the duplicate are automatically removed
+page_list = set((list(filter(None, page_list))))
+
+def get_max_pages():
+    page_regex = re.compile("Page+\s")
+    max = 0
+    for string in page_list:
+        string = page_regex.sub('', string)
+        if max < int(string):
+            max = int(string)
+    return max
 # def scrap_page_urls()
 # elements = driver.find_elements(By.XPATH, '//h2[@class="card__title card--result__title"]')
 # print(len(elements))
 
 #for apartments
-def search_apartments(search_url):
-    for i in range (1, 5):
+def search_property_urls(search_url):
+    driver.get(root_url)
+    driver.find_element(By.XPATH, '//*[@id="uc-btn-accept-banner"]').click()
+    for i in range (1, get_max_pages()):
         print(f"PAGE N°{i}")
-        driver.get(search_url + str(i))
+        driver.get(search_url + f"?page={i}")
         elements = driver.find_elements(By.XPATH, '//h2[@class="card__title card--result__title"]')
 
         for item in elements:
             print(item.find_element(By.CLASS_NAME, "card__title-link").get_attribute("href"))   
     return        
 
+search_property_urls(search_apartment_url)
 #0.8927087783813477 seconds
 # search_apartments(search_apartment_url, driver)
 
