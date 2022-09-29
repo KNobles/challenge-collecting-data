@@ -10,7 +10,11 @@ import re
 from requests import Session
 from bs4 import BeautifulSoup
 
-driver = webdriver.Firefox()
+options = webdriver.FirefoxOptions()
+options.headless = True
+
+driver = webdriver.Firefox(options=options)
+driver.headless = True
 driver.implicitly_wait(10)
 root_url = "https://www.immoweb.be/en"
 search_apartment_url = root_url + "/search/apartment/for-sale" 
