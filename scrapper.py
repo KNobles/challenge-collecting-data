@@ -16,13 +16,15 @@ search_appartment_url = root_url + "/search/apartment/for-sale"
 
 driver.get(search_appartment_url)
 driver.find_element(By.XPATH, '//*[@id="uc-btn-accept-banner"]').click()
-elements = driver.find_elements(By.CLASS_NAME, "card__title-link")
+
+# def scrap_page_urls()
+elements = driver.find_elements(By.XPATH, '//h2[@class="card__title card--result__title"]')
+print(len(elements))
 
 for item in elements:
-    if item.get_attribute("href") == "":
-        print("its the end")
-    else:
-        print(item.get_attribute("href"))
+    print(item.find_element(By.CLASS_NAME, "card__title-link").get_attribute("href"))
+    
+# Get last page from pagination list
 
 #.get_attribute("href")
 #driver.find_element(By.ID, "uc-btn-accept-banner").click()
