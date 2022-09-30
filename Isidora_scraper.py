@@ -1,7 +1,10 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from threading import Thread
+from multiprocessing import get_context, RLock
+from multiprocessing import Process
+from multiprocessing import Pool
 from time import perf_counter
+from math import factorial
 import time
 from logging import root
 import pandas
@@ -15,20 +18,20 @@ options.headless = True
 
 driver = webdriver.Firefox(options=options)
 driver.headless = True
-driver.implicitly_wait(10)
+# driver.implicitly_wait(10)
 root_url = "https://www.immoweb.be/en"
 search_apartment_url = root_url + "/search/apartment/for-sale" 
 search_house_url = root_url + "/search/house/for-sale" 
+rlock = RLock()
+#driver.get(search_apartment_url + "?page=1")
 
-driver.get(search_apartment_url + "?page=1")
 
-# # Get all elements of the page that has the word "Page" and put it in a list
-page_list = [elem.text for elem in driver.find_elements(By.XPATH, "//*[contains(text(), 'Page')]")]
-
-# # Filter the empty items from the list and then change the list as a "set" so the duplicate are automatically removed
-page_list = set((list(filter(None, page_list))))
 
 def get_max_pages():
+# # Filter the empty items from the list and then change the list as a "set" so the duplicate are automatically removed
+    page_list = [elem.text for elem in driver.find_elements(By.XPATH, "//*[contains(text(), 'Page')]")]
+# # Get all elements of the page that has the word "Page" and put it in a list
+    page_list = set((list(filter(None, page_list))))
     page_regex = re.compile("Page+\s")
     max = 0
     for string in page_list:
@@ -36,24 +39,31 @@ def get_max_pages():
         if max < int(string):
             max = int(string)
     return max
-# def scrap_page_urls()
-# elements = driver.find_elements(By.XPATH, '//h2[@class="card__title card--result__title"]')
-# print(len(elements))
 
-#for apartments
-def search_property_urls(search_url):
-    driver.get(root_url)
-    driver.find_element(By.XPATH, '//*[@id="uc-btn-accept-banner"]').click()
-    for i in range (1, get_max_pages()): #2,d part of map
+
+def search_property_urls(i):
+    with rlock:
+        start_time = perf_counter()
+
+#    driver.get(search_url)
+#   driver.find_element(By.XPATH, '//*[@id="uc-btn-accept-banner"]').click()
+#    for i in range (1, get_max_pages()):
         print(f"PAGE N°{i}")
+        search_url = search_apartment_url
         driver.get(search_url + f"?page={i}")
         elements = driver.find_elements(By.XPATH, '//h2[@class="card__title card--result__title"]')
-
+    
+        items = []
         for item in elements:
-            print(item.find_element(By.CLASS_NAME, "card__title-link").get_attribute("href"))   
-    return        
+            items.append(item.find_element(By.CLASS_NAME, "card__title-link").get_attribute("href"))
+        print(f"\nTime spent inside the loop: {perf_counter() - start_time} seconds.")
+        return items
 
-search_property_urls(search_apartment_url)
+with get_context("fork").Pool() as pool:
+    gen = tuple(pool.map(search_property_urls, range(1,10)))
+
+#driver.close()
+
 #0.8927087783813477 seconds
 # search_apartments(search_apartment_url, driver)
 
