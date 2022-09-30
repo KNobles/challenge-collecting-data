@@ -1,10 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from multiprocessing import get_context, RLock
-from multiprocessing import Process
-from multiprocessing import Pool
+from multiprocessing import get_context, Process, Pool
 from time import perf_counter
-from math import factorial
 import time
 from logging import root
 import pandas
@@ -14,7 +11,7 @@ from requests import Session
 from bs4 import BeautifulSoup
 
 options = webdriver.FirefoxOptions()
-options.headless = True
+# options.headless = True
 
 driver = webdriver.Firefox(options=options)
 driver.headless = True
@@ -22,7 +19,6 @@ driver.headless = True
 root_url = "https://www.immoweb.be/en"
 search_apartment_url = root_url + "/search/apartment/for-sale" 
 search_house_url = root_url + "/search/house/for-sale" 
-rlock = RLock()
 #driver.get(search_apartment_url + "?page=1")
 
 
@@ -42,25 +38,21 @@ def get_max_pages():
 
 
 def search_property_urls(i):
-    with rlock:
-        start_time = perf_counter()
+    start_time = perf_counter() 
 
-#    driver.get(search_url)
-#   driver.find_element(By.XPATH, '//*[@id="uc-btn-accept-banner"]').click()
-#    for i in range (1, get_max_pages()):
-        print(f"PAGE N°{i}")
-        search_url = search_apartment_url
-        driver.get(search_url + f"?page={i}")
-        elements = driver.find_elements(By.XPATH, '//h2[@class="card__title card--result__title"]')
-    
-        items = []
-        for item in elements:
-            items.append(item.find_element(By.CLASS_NAME, "card__title-link").get_attribute("href"))
-        print(f"\nTime spent inside the loop: {perf_counter() - start_time} seconds.")
-        return items
+    print(f"PAGE N°{i}")
+    search_url = search_apartment_url
+    driver.get(search_url + f"?page={i}")
+    elements = driver.find_elements(By.XPATH, '//h2[@class="card__title card--result__title"]')
+
+    items = []
+    for item in elements:
+        items.append(item.find_element(By.CLASS_NAME, "card__title-link").get_attribute("href"))
+    print(f"\nTime spent inside the loop: {perf_counter() - start_time} seconds.")
+    return items
 
 with get_context("fork").Pool() as pool:
-    gen = tuple(pool.map(search_property_urls, range(1,10)))
+    gen = tuple(pool.map(search_property_urls, range(1,16)))
 
 #driver.close()
 
