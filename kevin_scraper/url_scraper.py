@@ -1,6 +1,7 @@
 from logging import root
 import pandas
 import re
+import json
 import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -18,17 +19,16 @@ search_appartment_url = root_url + "/search/apartment/for-sale"
 page_regex = re.compile("Page+\s")
 
 driver = webdriver.Firefox()
-# driver.implicitly_wait(10)
+# driver.implicitlyelements_wait(10)
 # driver.get(search_appartment_url)
 # driver.find_element(By.XPATH, '//*[@id="uc-btn-accept-banner"]').click()
 
 driver.get("https://www.immoweb.be/en/classified/new-real-estate-project-houses/for-sale/opwijk/1745/10140459?searchId=6335af4900662")
-
+#25 chars
 ## This gets us the json of the page by using xpath and asking the innerHTML 
 ## Please do not mind the WebDriverWait we might be removing soon
 item = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//script[@type='text/javascript'][contains(.,'window.classified')]"))).get_attribute('innerHTML')
-print(item)
-
+print(item[1]["locality"])
 # # Get all elements of the page that has the word "Page" and put it in a list
 # page_list = [elem.text for elem in driver.find_elements(By.XPATH, "//*[contains(text(), 'Page')]")]
 

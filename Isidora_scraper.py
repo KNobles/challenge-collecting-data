@@ -39,8 +39,8 @@ def search_property_urls(i):
     start_time = perf_counter()
 
     options = webdriver.FirefoxOptions()
+    options.headless = True
     driver = webdriver.Firefox(options=options)
-    driver.headless = True
     
     print(f"PAGE N°{i}")
     driver.get(search_apartment_url + f"?page={i}")
@@ -51,6 +51,7 @@ def search_property_urls(i):
         items.append(item.find_element(By.CLASS_NAME, "card__title-link").get_attribute("href"))
     print(f"\nTime spent inside the loop: {perf_counter() - start_time} seconds.")
     driver.close()
+    return items
 
 with get_context("fork").Pool() as pool:
     gen = tuple(pool.map(search_property_urls, range(1,16)))
