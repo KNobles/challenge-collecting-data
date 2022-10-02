@@ -4,24 +4,17 @@ from multiprocessing import get_context, Process, Pool
 from time import perf_counter
 import csv
 import time
-from logging import root
 import pandas
 import requests
 import re
 from requests import Session
 from bs4 import BeautifulSoup
 
-# options.headless = True
-
-
 # driver.implicitly_wait(10)
 root_url = "https://www.immoweb.be/en"
 search_apartment_url = root_url + "/search/apartment/for-sale" 
-search_house_url = root_url + "/search/house/for-sale" 
-#driver.get(search_apartment_url + "?page=1")
-
-
-
+search_house_url = root_url + "/search/house/for-sale"
+search_url_list = [search_apartment_url, search_house_url]
 # def get_max_pages():
 # # # Filter the empty items from the list and then change the list as a "set" so the duplicate are automatically removed
 
@@ -39,31 +32,30 @@ search_house_url = root_url + "/search/house/for-sale"
 
 
 def search_property_urls(i):
-    start_time = perf_counter()
+    # start_time = perf_counter()
 
     options = webdriver.FirefoxOptions()
     options.headless = True
     driver = webdriver.Firefox(options=options)
     
-    #print(f"PAGE N°{i}")
+    print(f"PAGE N°{i}")
     driver.get(search_apartment_url + f"?page={i}")
     elements = driver.find_elements(By.XPATH, '//h2[@class="card__title card--result__title"]')
     items = []
     for item in elements:
         # print(item.find_element(By.CLASS_NAME, "card__title-link").get_attribute("href"))
         items.append(item.find_element(By.CLASS_NAME, "card__title-link").get_attribute("href"))
-    print(f"\nTime spent inside the loop: {perf_counter() - start_time} seconds.")
+    # print(f"\nTime spent inside the loop: {perf_counter() - start_time} seconds.")
     driver.close()
     return items
 
 with get_context("fork").Pool() as pool:
-    gen = list(tuple(pool.map(search_property_urls, range(1, 334))))
+    gen = list(tuple(pool.map(search_property_urls, range(1, 6))))
 
-with open("realestate_urls.csv", "w", newline='') as realestate_file:
-    url_writer = csv.writer(realestate_file)
-
-    url_writer.writerows(gen)
-    #print(gen)
+with open("realestate_urls.csv", "w") as realestate_file:
+    for apt_url in gen:
+        for url in apt_url:
+            realestate_file.write(url + "\n")
 
 print("File saved")
 
