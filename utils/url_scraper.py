@@ -40,4 +40,6 @@ class Scraper:
                     realestate_file.write(url + "\n")
         print("Done writing")
 
+    # def get_property_data(property_url):
+    #     driver = 
 
