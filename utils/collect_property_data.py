@@ -1,4 +1,3 @@
-from collections import defaultdict
 from selenium import webdriver
 
 class Property:
@@ -7,49 +6,58 @@ class Property:
         options.headless = True 
         self.driver = webdriver.Firefox(options=options)
         self.driver.get(property_url)
-        property_data = self.property_data()
+        self.property_data = self.property_data()
 
-        self.property_type = property_data["property"]["type"]
-        self.property_sub_type = property_data["property"]["subtype"]
-        self.property_locality = property_data["property"]["location"]["locality"]
-        self.property_sale_type = property_data["price"]["type"]
-        self.property_price = property_data["price"]["mainValue"]
-        self.property_room_count = property_data["property"]["bedroomCount"]
-        self.property_surface = property_data["property"]["netHabitableSurface"]
-        self.property_is_kitchen_fully_equipped = self.property_is_kitchen_fully_equipped()
-        self.property_is_furnished = 1 if property_data["transaction"]["sale"]["isFurnished"] == True else 0
-        self.porperty_has_open_fire = 1 if property_data["property"]["fireplaceExists"] == True else 0
-        self.property_has_terrace = 1 if property_data["property"]["hasTerrace"] == True else 0
-        self.property_has_garden = 1 if property_data["property"]["hasGarden"] == True else 0
-        # MISSING SURFACE OF THE LAND AND THE SURFACE OF THE PLOT AREA, WILL DO IT
-        self.property_facade_count = self.property_data()
-        self.property_has_swimming_pool = 1 if property_data["property"]["hasSwimmingPool"] == True else 0
-        # self.property_building_state = property_data["property"]["building"]["condition"]
-    
-    def some_test(self, data):
+        self.locality = self.property_data["property"]["location"]["locality"]
+        self.type = self.property_data["property"]["type"]
+        self.sub_type = self.property_data["property"]["subtype"]
+        self.sale_type = self.property_data["price"]["type"]
+        self.price = self.property_data["price"]["mainValue"]
+        self.bedroom_count = self.property_data["property"]["bedroomCount"]
+        self.surface = self.property_data["property"]["netHabitableSurface"]
+        self.is_kitchen_fully_equipped = self.is_kitchen_fully_equipped()
+        self.is_furnished = 1 if self.property_data["transaction"]["sale"]["isFurnished"] == True else 0
+        self.has_open_fire = 1 if self.property_data["property"]["fireplaceExists"] == True else 0
+        self.has_terrace = 1 if self.property_data["property"]["hasTerrace"] == True else 0
+        self.has_garden = 1 if self.property_data["property"]["hasGarden"] == True else 0
+        self.terrace_surface = self.property_data["property"]["terraceSurface"] if self.property_data["property"]["terraceSurface"] == True else "None"
+        self.garden_surface = self.property_data["property"]["gardenSurface"] if self.property_data["property"]["gardenSurface"] == True else "None"
+        self.land_surface = self.land_surface()
+        self.facade_count = self.facade_count()
+        self.has_swimming_pool = 1 if self.property_data["property"]["hasSwimmingPool"] == True else 0
+        self.building_state = self.building_state()
+
+    def land_surface(self):
         try:
-            newdata = data
+            land_surface = self.property_data["property"]["land"]["surface"]
         except TypeError:
-            newdata = None
-        return newdata
+            land_surface = "None"
+        return land_surface
 
-
-    def property_facade_count(self):
+    def building_state(self):
         try:
-            facade_count = self.property_data()["property"]["building"]["facadeCount"]
+            building_state = self.property_data["property"]["building"]["condition"]
         except TypeError:
-            return None
+            building_state = "None"
+        return building_state
+
+    def facade_count(self):
+        try:
+            facade_count = self.property_data["property"]["building"]["facadeCount"]
+        except TypeError:
+            facade_count = "None"
+        return facade_count
 
     def property_data(self):
         return self.driver.execute_script("return window.classified")
 
-    def property_is_kitchen_fully_equipped(self):
+    def is_kitchen_fully_equipped(self):
         try:
-            has_kitchen = self.property_data()["property"]["kitchen"]["type"]
+            has_kitchen = self.property_data["property"]["kitchen"]["type"]
             if has_kitchen == "HYPER_EQUIPPED":
                 return 1
             else:
                 return 0
         except TypeError:
-            return None
+            return "None"
 
