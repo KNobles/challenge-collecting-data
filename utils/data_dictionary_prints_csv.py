@@ -1,12 +1,15 @@
 from collections import defaultdict
-import collections
 import os
 import pathlib
 import pandas as pd
 from utils.collect_property_data import Property
-
+from requests import Session
+from bs4 import BeautifulSoup
+import json
+from multiprocessing import pool
 class PropertyDataWriter:
     columns = [
+        "id",
         "locality",
         "type_of_property",
         "subtype_of_property",
@@ -30,13 +33,23 @@ class PropertyDataWriter:
     def map_property_to_data_dictionary(file_name:str):
         property_data_dictionary = defaultdict(list)
         file_location = os.path.join(pathlib.Path(__file__).parent.resolve(), "../data", file_name)
-
-        with open(file_location, "r", encoding="utf-8") as file:
-            for i in range(6):
-                property_url = file.readline()
-                print(property_url)
-                property = Property(property_url)
-
+        properties_url = pd.read_csv(file_location, encoding="utf-8")
+        sess = Session()
+        print(len(properties_url))
+        for property_url in properties_url.values:
+            # print(property_url[0])
+            try :
+                req = sess.get(property_url[0], timeout=2)
+            except Exception as e:
+                print("Some connection error")
+                continue
+            if req.status_code == 200:
+                soup = BeautifulSoup(req.content, "html.parser")
+                script = soup.find('script',attrs={"type" :"text/javascript"})
+                # print(json.loads(script.contents[0][33:-10]))
+                print(property_url[0])
+                property = Property(json.loads(script.contents[0][33:-10]))
+                property_data_dictionary["id"].append(property.id)
                 property_data_dictionary["locality"].append(property.locality)
                 property_data_dictionary["type_of_property"].append(property.type)
                 property_data_dictionary["subtype_of_property"].append(property.sub_type)
@@ -51,11 +64,10 @@ class PropertyDataWriter:
                 property_data_dictionary["terrace_surface"].append(property.terrace_surface)
                 property_data_dictionary["garden"].append(property.has_garden)
                 property_data_dictionary["garden_surface"].append(property.garden_surface)
-                property_data_dictionary["land_surface"].append(property.land_surface)
                 property_data_dictionary["number_of_facades"].append(property.facade_count)
+                property_data_dictionary["land_surface"].append(property.land_surface)
                 property_data_dictionary["swimming_pool"].append(property.has_swimming_pool)
                 property_data_dictionary["state_of_the_building"].append(property.building_state)
-        
         return property_data_dictionary
 
     def write_data_to_file():

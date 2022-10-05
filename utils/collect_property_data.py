@@ -1,20 +1,20 @@
-from selenium import webdriver
-
+import json
+from selenium.webdriver.common.by import By
+import requests
+from requests import Session
+from bs4 import BeautifulSoup
 class Property:
-    def __init__(self, property_url) -> None:
-        options = webdriver.FirefoxOptions()
-        options.headless = True 
-        self.driver = webdriver.Firefox(options=options)
-        self.driver.get(property_url)
-        self.property_data = self.property_data()
-
-        self.locality = self.property_data["property"]["location"]["locality"]
-        self.type = self.property_data["property"]["type"]
-        self.sub_type = self.property_data["property"]["subtype"]
-        self.sale_type = self.property_data["price"]["type"]
-        self.price = self.property_data["price"]["mainValue"]
-        self.bedroom_count = self.property_data["property"]["bedroomCount"]
-        self.surface = self.property_data["property"]["netHabitableSurface"]
+    def __init__(self, json_obj) -> None:
+        # print(json.loads(script.contents[0][33:-10])["property"]["subtype"])
+        self.property_data = json_obj
+        self.id = self.id()
+        self.locality = self.locality()
+        self.type = self.type()
+        self.sub_type = self.sub_type()
+        self.sale_type = self.sale_type()
+        self.price = self.price()
+        self.bedroom_count = self.bedroom_count()
+        self.surface = self.surface()
         self.is_kitchen_fully_equipped = self.is_kitchen_fully_equipped()
         self.is_furnished = 1 if self.property_data["transaction"]["sale"]["isFurnished"] == True else 0
         self.has_open_fire = 1 if self.property_data["property"]["fireplaceExists"] == True else 0
@@ -26,6 +26,59 @@ class Property:
         self.facade_count = self.facade_count()
         self.has_swimming_pool = 1 if self.property_data["property"]["hasSwimmingPool"] == True else 0
         self.building_state = self.building_state()
+
+    # def property_data(self, property_url):
+    #     with Session() as sess:
+    #         req = sess.get(property_url, timeout=3)
+    #         soup = BeautifulSoup(req.content, "html.parser")
+    #         script = soup.find('script',attrs={"type" :"text/javascript"})
+    #     return json.loads(script.contents[0][33:-10])
+    
+    def id(self):
+        property_id = self.property_data["id"]
+        return property_id
+
+    def surface(self):
+        surface = self.property_data["property"]["netHabitableSurface"]
+        if surface is None:
+            surface = "None"
+        return surface
+
+    def price(self):
+        price = self.property_data["price"]["mainValue"]
+        if price is None:
+            price = "None"
+        return price
+
+    def sale_type(self):
+        sale_type = self.property_data["price"]["type"]
+        if sale_type is None:
+            sale_type = "None"
+        return sale_type
+    
+    def sub_type(self):
+        sub_type = self.property_data["property"]["subtype"]
+        if sub_type is None:
+            sub_type = "None"
+        return sub_type
+
+    def type(self):
+        type = self.property_data["property"]["type"]
+        if type is None:
+            type = "None"
+        return type
+
+    def locality(self):
+        locality = self.property_data["property"]["location"]["locality"]
+        if locality is None:
+            locality = "None"
+        return locality
+
+    def bedroom_count(self):
+        bedroom_count = self.property_data["property"]["bedroomCount"]
+        if bedroom_count is None:
+            bedroom_count = "None"
+        return bedroom_count
 
     def land_surface(self):
         try:
@@ -48,9 +101,6 @@ class Property:
             facade_count = "None"
         return facade_count
 
-    def property_data(self):
-        return self.driver.execute_script("return window.classified")
-
     def is_kitchen_fully_equipped(self):
         try:
             has_kitchen = self.property_data["property"]["kitchen"]["type"]
@@ -60,4 +110,3 @@ class Property:
                 return 0
         except TypeError:
             return "None"
-
