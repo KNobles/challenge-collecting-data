@@ -39,7 +39,3 @@ class Scraper:
                 for url in apt_url:
                     realestate_file.write(url + "\n")
         print("Done writing")
-
-    # def get_property_data(property_url):
-    #     driver = 
-
