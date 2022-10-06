@@ -11,12 +11,16 @@ class PropertyDataWriter:
     columns = [
         "id",
         "locality",
+        "postal_code",
+        "region",
+        "province",
         "type_of_property",
         "subtype_of_property",
         "type_of_sale",
         "price",
         "number_of_bedrooms",
         "surface",
+        "kitchen_type",
         "fully_equipped_kitchen",
         "furnished",
         "open_fire",
@@ -36,6 +40,7 @@ class PropertyDataWriter:
         properties_url = pd.read_csv(file_location, encoding="utf-8")
         sess = Session()
         print(len(properties_url))
+        print(type(properties_url))
         for property_url in properties_url.values:
             # print(property_url[0])
             try :
@@ -51,12 +56,16 @@ class PropertyDataWriter:
                 property = Property(json.loads(script.contents[0][33:-10]))
                 property_data_dictionary["id"].append(property.id)
                 property_data_dictionary["locality"].append(property.locality)
+                property_data_dictionary["postal_code"].append(property.postal_code)
+                property_data_dictionary["region"].append(property.region)
+                property_data_dictionary["province"].append(property.province)
                 property_data_dictionary["type_of_property"].append(property.type)
                 property_data_dictionary["subtype_of_property"].append(property.sub_type)
                 property_data_dictionary["type_of_sale"].append(property.sale_type)
                 property_data_dictionary["price"].append(property.price)
                 property_data_dictionary["number_of_bedrooms"].append(property.bedroom_count)
                 property_data_dictionary["surface"].append(property.surface)
+                property_data_dictionary["kitchen_type"].append(property.kitchen_type)
                 property_data_dictionary["fully_equipped_kitchen"].append(property.is_kitchen_fully_equipped)
                 property_data_dictionary["furnished"].append(property.is_furnished)
                 property_data_dictionary["open_fire"].append(property.has_open_fire)
@@ -71,5 +80,5 @@ class PropertyDataWriter:
         return property_data_dictionary
 
     def write_data_to_file():
-        data_file = pd.DataFrame(PropertyDataWriter.map_property_to_data_dictionary("realestate_urls.csv"),columns=PropertyDataWriter.columns)
-        data_file.to_csv("Property_structured_data.csv")
+        data_file = pd.DataFrame(PropertyDataWriter.map_property_to_data_dictionary("realestate_urls2.csv"),columns=PropertyDataWriter.columns)
+        data_file.to_csv("Property_structured_data2.csv")
