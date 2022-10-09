@@ -1,41 +1,79 @@
-from numpy import float64
+import os
+import pathlib
+from statistics import median
+from types import MethodType
 import numpy as np
 import pandas as pd
+import seaborn as sns
 import matplotlib.pyplot as plt
-import seaborn
+import plotly.express as px
 
-df = pd.read_csv("cleaned_dataset_properties.csv")
 
-# data.loc[data['construction_year'] == "None", 'construction_year'] = "0"
+df = pd.read_csv("~/Documents/BeCode/Projects/challenge-collecting-data/data/Property_structured_data.csv")
 
-# #data.insert(loc=4, column='property_age', value=2022 - data['construction_year'])
-# #print(data.dtypes)
-# data['construction_year'] = data['construction_year'].astype(float).astype(int)
-# data.loc[data['construction_year'] > 0, "property_age"] = 2022 - data['construction_year']
-# data['property_age'] = data['property_age'].fillna(0).astype(int)
-# data['price'] = data['price'].astype(int)
-# data.loc[data['swimmingpool'] == "True"] = 1
-# data.loc[data['swimmingpool'] == "False"] = 0
-# data['swimmingpool'] = data['swimmingpool'].astype(float).astype(int)
-# # print(data.dtypes)
-# ds = pandas.Series(data['subtype'])
-# ps_corr = pandas.DataFrame(data=data, columns=["price", "swimmingpool", "subtype"])
-# print(ps_corr.corr(method ='pearson'))
-# df_new = ps_corr.set_index('name')['subtype'].astype(str).str.get_dummies().T
-# # price_age_plot = seaborn.scatterplot(data=data, x="subtype", y="swimmingpool")
-# plt.figure(figsize=(8, 4))
-# seaborn.heatmap(ps_corr)
-# plt.show()
-# plt.yticks(numpy.arange(min(data['price']), max(data['price'])+1, 50000))
-# plt.ticklabel_format(style='plain', axis='y', )
-# plt.show()
-# has_garden has_terrace swimmingpool
-df.drop_duplicates(inplace=True)
-df.duplicated().sum()
-object_features = ['price', 'habitable_surface', 'bedrooms_count', 'garden_area', 'land_area', 'num_facade']
+features = ['id', 'locality', 'postal_code', 'region', 'province',
+       'type_of_property', 'subtype_of_property', 'type_of_sale', 'price',
+       'number_of_bedrooms', 'surface', 'kitchen_type',
+       'fully_equipped_kitchen', 'furnished', 'open_fire', 'terrace',
+       'terrace_surface', 'garden', 'garden_surface', 'land_surface',
+       'number_of_facades', 'swimming_pool', 'state_of_the_building']
+
 #converting object_features values into numerical values
-for object_feature in object_features:
-    df[object_feature] = df[object_feature].replace('None',np.nan, inplace = False)
-    pd.to_numeric(df[object_feature])
+for feature in features:
+    df[feature].replace(-1,np.nan, inplace = True)
 
-print(df)
+def remove_outliers(dataset, column_name:str):
+    #calculate upper and lower limits
+    upper_limit = dataset[column_name].mean() +2.6 * dataset[column_name].std()
+    lower_limit = dataset[column_name].mean() -2.6 * dataset[column_name].std()
+
+    #select outliers
+    dataset[~((dataset[column_name] < upper_limit) & (dataset[column_name]> lower_limit))]
+
+    #outliers removed
+    new_dataset = dataset[(dataset[column_name] < upper_limit) & (dataset[column_name] > lower_limit)]
+    return new_dataset
+
+# df2 = remove_outliers(df, "terrace_surface")
+ro_price = remove_outliers(df, "price")
+ro_price = remove_outliers(ro_price, "price")
+
+ro_price = remove_outliers(ro_price, "surface")
+ro_price = remove_outliers(ro_price, "surface")
+
+# ro_price = remove_outliers(ro_price, "land_surface")
+# ro_price = remove_outliers(ro_price, "land_surface")
+
+ro_price = remove_outliers(ro_price, "number_of_bedrooms")
+ro_price = remove_outliers(ro_price, "number_of_bedrooms")
+ro_corr = ro_price.corr()
+
+ro = sns.heatmap(ro_corr, annot=True, annot_kws={'fontsize':10})
+
+print(df["price"].corr(df["open_fire"]))
+print(df["price"].corr(df["furnished"]))
+print(df["price"].corr(df["terrace"]))
+print(df["price"].corr(df["terrace_surface"]))
+print(df["price"].corr(df["swimming_pool"]))
+
+fig = px.scatter_3d(ro_price, x="number_of_bedrooms", y="surface", z="price", color="locality",
+                 size='price')
+fig.show()
+
+# print(ro_price['type_of_property'])
+
+# plt.show()
+
+# sns.heatmap(correlation, annot=True)
+# print(df["locality"].value_counts()["Namur"])
+
+# my_plot = sns.regplot(data=df2, x="furnished", y="price")
+# Do not use price for any of the features
+
+# df_price = pd.DataFrame(df.corrwith(df.price).sort_values(ascending = False))
+# df_price.rename(index={"0": "Price"})
+# a = sns.heatmap(df_price, annot=True, fmt="g", cmap='YlGnBu') 
+# a.tick_params(labelsize=10)
+# a.set_xlabel("Price",fontsize=20)
+# g = sns.lmplot(x="state_of_the_building", y="price", hue="state_of_the_building", data=df)
+# 

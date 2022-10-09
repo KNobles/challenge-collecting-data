@@ -20,13 +20,12 @@ class Scraper:
             driver.get(property_type + f"?countries=BE&isAPublicSale=false&page={page_num}&orderBy=relevance")
             elements = driver.find_elements(By.XPATH, '//h2[@class="card__title card--result__title"]')
             for item in elements:
-                # print(item.find_element(By.CLASS_NAME, "card__title-link").get_attribute("href"))
                 items.append(item.find_element(By.CLASS_NAME, "card__title-link").get_attribute("href"))        
         driver.close()
         return items
 
     def write_property_urls():
-        path = os.path.join(pathlib.Path(__file__).parent.resolve(), "../data")
+        path = os.path.join(pathlib.Path(__file__).parent.resolve(), "../../data")
         try:
             os.mkdir("data")
         except OSError as error: 
